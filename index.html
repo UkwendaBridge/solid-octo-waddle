@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Maestro Fuel - Ordering Portal</title>
+    
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#1e40af" />
+    <meta name="description" content="Fuel ordering and management portal" />
+    <link rel="manifest" href="/manifest.json" />
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="shortcut icon" href="/favicon.ico" />
+    
+    <!-- Apple Touch Icon -->
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Maestro Fuel" />
+  </head>
+  <body>
+    <!-- Splash Screen -->
+    <div id="splash-screen">
+      <div class="splash-content">
+        <img src="/web-app-manifest-192x192.png" alt="Maestro Fuel" class="splash-logo" />
+        <div class="splash-text">Maestro Fuel</div>
+        <div class="splash-loader"></div>
+      </div>
+    </div>
+    <style>
+      #splash-screen {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+        z-index: 9999;
+        transition: opacity 0.4s ease, visibility 0.4s ease;
+      }
+      #splash-screen.hidden {
+        opacity: 0;
+        visibility: hidden;
+      }
+      .splash-content {
+        text-align: center;
+      }
+      .splash-logo {
+        width: 96px;
+        height: 96px;
+        border-radius: 20px;
+        animation: pulse 1.5s ease-in-out infinite;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+      }
+      .splash-text {
+        margin-top: 20px;
+        color: white;
+        font-size: 24px;
+        font-weight: 600;
+        font-family: system-ui, -apple-system, sans-serif;
+        letter-spacing: 0.5px;
+      }
+      .splash-loader {
+        margin: 24px auto 0;
+        width: 40px;
+        height: 4px;
+        background: rgba(255, 255, 255, 0.3);
+        border-radius: 2px;
+        overflow: hidden;
+      }
+      .splash-loader::after {
+        content: '';
+        display: block;
+        width: 50%;
+        height: 100%;
+        background: white;
+        border-radius: 2px;
+        animation: loading 1s ease-in-out infinite;
+      }
+      @keyframes pulse {
+        0%, 100% { transform: scale(1); opacity: 1; }
+        50% { transform: scale(1.05); opacity: 0.8; }
+      }
+      @keyframes loading {
+        0% { transform: translateX(-100%); }
+        100% { transform: translateX(200%); }
+      }
+    </style>
+    
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
