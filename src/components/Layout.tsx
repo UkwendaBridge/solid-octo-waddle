@@ -276,6 +276,11 @@ export default function Layout() {
                     <span>My Balance</span>
                     <ChevronRight size={14} className="sidebar-link-arrow" />
                   </NavLink>
+                  <NavLink to="/dashboard/reports" className="sidebar-link">
+                    <BarChart3 size={18} />
+                    <span>Reports</span>
+                    <ChevronRight size={14} className="sidebar-link-arrow" />
+                  </NavLink>
                   <NavLink to="/dashboard/settings" className="sidebar-link">
                     <Settings size={18} />
                     <span>Settings</span>

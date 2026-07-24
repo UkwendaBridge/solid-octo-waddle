@@ -24,6 +24,7 @@ const BulkOrderPage = lazy(() => import('./pages/BulkOrderPage'));
 const CustomerOrdersPage = lazy(() => import('./pages/CustomerOrdersPage'));
 const DriverPage = lazy(() => import('./pages/DriverPage'));
 const BulkDriverPage = lazy(() => import('./pages/BulkDriverPage'));
+const CustomerReportsPage = lazy(() => import('./pages/CustomerReportsPage'));
 const VehiclePage = lazy(() => import('./pages/VehiclePage'));
 const OmcDashboard = lazy(() => import('./pages/OmcDashboard'));
 const OmcReportsPage = lazy(() => import('./pages/OmcReportsPage'));
@@ -108,6 +109,7 @@ export default function App() {
                         <Route path="orders" element={<CustomerOrdersPage />} />
                         <Route path="drivers" element={<DriverPage />} />
                         <Route path="bulk-drivers" element={<BulkDriverPage />} />
+                        <Route path="reports" element={<CustomerReportsPage />} />
                         <Route path="vehicles" element={<VehiclePage />} />
                         <Route path="balance" element={<CustomerBalancePage />} />
                         <Route path="settings" element={<CustomerSettingsPage />} />
