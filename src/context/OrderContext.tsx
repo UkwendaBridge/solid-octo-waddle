@@ -9,6 +9,7 @@ import {
 import type { FuelOrder, NewOrderFormData, OrderStatus, Site } from '../types';
 import type { BackendOrder } from '../types/api';
 import { customerOrders, omcOrders, driverOtp } from '../services/api';
+import { mapVolumes } from '../hooks/useOrders';
 import { useAuth } from './AuthContext';
 import { useToast } from './ToastContext';
 
@@ -53,7 +54,8 @@ function mapBackendOrder(o: BackendOrder): FuelOrder {
     vehicleRegNumber: o.registration_number || o.vehicle_registration || '',
     vehicleType: o.vehicle_type || 'Other',
     tankCapacity: o.tank_capacity || 0,
-    fuelVolumeAllocated: parseFloat(String(o.requested_fuel)) || 0,
+    // Shared with useOrders so the two mappers cannot drift apart.
+    ...mapVolumes(o),
     fuelType: o.fuel_grade === 'diesel' ? 'Diesel' : 'Petrol',
     otp: o.otp_code,
     otpActive: !!o.otp_code && o.status === 'approved',

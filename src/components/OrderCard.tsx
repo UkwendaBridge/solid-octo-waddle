@@ -112,8 +112,25 @@ export default function OrderCard({ order, showOtp = false, actions }: Props) {
           <div className="detail-item">
             <Droplets size={15} className="detail-icon" />
             <div>
-              <span className="detail-label">Volume Allocated</span>
-              <span className="detail-value highlight">{order.fuelVolumeAllocated} L</span>
+              {/*
+                Once fuel has been drawn, REMAINING is the number that matters —
+                an allocation stays open across partial fills, so showing only
+                the original volume tells a driver who has taken 2 of 5 L that
+                they still have 5.
+              */}
+              <span className="detail-label">
+                {order.fuelVolumeDrawn > 0 ? 'Remaining' : 'Volume Allocated'}
+              </span>
+              <span className="detail-value highlight">
+                {order.fuelVolumeDrawn > 0
+                  ? `${order.fuelVolumeRemaining} L`
+                  : `${order.fuelVolumeAllocated} L`}
+              </span>
+              {order.fuelVolumeDrawn > 0 && (
+                <span className="detail-subvalue">
+                  {order.fuelVolumeDrawn} L of {order.fuelVolumeAllocated} L drawn
+                </span>
+              )}
             </div>
           </div>
         </div>

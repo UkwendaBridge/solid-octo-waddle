@@ -103,6 +103,15 @@ export interface BackendOrder {
   tank_capacity?: number;
   // Backend may serialize this as string or number — always use parseFloat(String(value)) when consuming
   requested_fuel: string | number;
+  /**
+   * Litres already dispensed against this order. An allocation stays open
+   * across several partial fills, so requested_fuel alone overstates what the
+   * driver can still collect. Optional: older backends omit it.
+   */
+  litres_drawn?: string | number;
+  /** requested_fuel - litres_drawn, clamped at zero. */
+  remaining_fuel?: string | number;
+  money_drawn?: string | number;
   fuel_grade: string;
   otp_code?: string;
   status: string;

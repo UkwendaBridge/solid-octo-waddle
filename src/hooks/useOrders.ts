@@ -15,6 +15,28 @@ const DEMO_SITES: Site[] = [
 
 // ─── Mapper ───────────────────────────────────────────────────────────────────
 
+/**
+ * Allocated / drawn / remaining litres.
+ *
+ * `remaining_fuel` and `litres_drawn` were added to the ordering backend so a
+ * partially-filled order stops reading as if it were untouched. Older backends
+ * omit them, so fall back to the full allocation with nothing drawn — the same
+ * behaviour the portal had before.
+ */
+export function mapVolumes(o: BackendOrder) {
+  const allocated = parseFloat(String(o.requested_fuel)) || 0;
+  const drawn = o.litres_drawn != null ? parseFloat(String(o.litres_drawn)) || 0 : 0;
+  const remaining =
+    o.remaining_fuel != null
+      ? parseFloat(String(o.remaining_fuel)) || 0
+      : Math.max(0, allocated - drawn);
+  return {
+    fuelVolumeAllocated: allocated,
+    fuelVolumeDrawn: drawn,
+    fuelVolumeRemaining: remaining,
+  };
+}
+
 function mapBackendOrder(o: BackendOrder): FuelOrder {
   return {
     id: o.id,
@@ -28,7 +50,7 @@ function mapBackendOrder(o: BackendOrder): FuelOrder {
     vehicleRegNumber: o.registration_number || o.vehicle_registration || '',
     vehicleType: o.vehicle_type || 'Other',
     tankCapacity: o.tank_capacity || 0,
-    fuelVolumeAllocated: parseFloat(String(o.requested_fuel)) || 0,
+    ...mapVolumes(o),
     fuelType: o.fuel_grade === 'diesel' ? 'Diesel' : 'Petrol',
     otp: o.otp_code,
     otpActive: !!o.otp_code && o.status === 'approved',
