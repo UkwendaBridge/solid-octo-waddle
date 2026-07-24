@@ -23,8 +23,10 @@ const NewOrderPage = lazy(() => import('./pages/NewOrderPage'));
 const BulkOrderPage = lazy(() => import('./pages/BulkOrderPage'));
 const CustomerOrdersPage = lazy(() => import('./pages/CustomerOrdersPage'));
 const DriverPage = lazy(() => import('./pages/DriverPage'));
+const BulkDriverPage = lazy(() => import('./pages/BulkDriverPage'));
 const VehiclePage = lazy(() => import('./pages/VehiclePage'));
 const OmcDashboard = lazy(() => import('./pages/OmcDashboard'));
+const OmcReportsPage = lazy(() => import('./pages/OmcReportsPage'));
 const OmcCustomersPage = lazy(() => import('./pages/OmcCustomersPage'));
 const OmcPendingOrdersPage = lazy(() => import('./pages/OmcPendingOrdersPage'));
 const OmcAllOrdersPage = lazy(() => import('./pages/OmcAllOrdersPage'));
@@ -79,6 +81,7 @@ export default function App() {
                         <Route path="financials" element={<FinancialsPage />} />
                         <Route path="debtors" element={<DebtorsPage />} />
                         <Route path="add-debtor" element={<AddDebtorPage />} />
+                        <Route path="reports" element={<OmcReportsPage />} />
                         <Route path="tank-levels" element={<TankLevelsPage />} />
                         <Route path="stations" element={<StationsPage />} />
                         <Route path="attendants" element={<AttendantsPage />} />
@@ -104,6 +107,7 @@ export default function App() {
                         <Route path="bulk-order" element={<BulkOrderPage />} />
                         <Route path="orders" element={<CustomerOrdersPage />} />
                         <Route path="drivers" element={<DriverPage />} />
+                        <Route path="bulk-drivers" element={<BulkDriverPage />} />
                         <Route path="vehicles" element={<VehiclePage />} />
                         <Route path="balance" element={<CustomerBalancePage />} />
                         <Route path="settings" element={<CustomerSettingsPage />} />

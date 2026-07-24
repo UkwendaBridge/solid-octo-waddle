@@ -301,6 +301,35 @@ export const customerDrivers = {
     });
   },
 
+  // Bulk-register drivers, each with a truck. One row = one driver + one vehicle.
+  // Surfaces per-row errors (results[]) so the page can flag bad rows.
+  bulkRegister: async (
+    drivers: { name: string; truck_number: string; phone: string }[],
+  ): Promise<{
+    success: boolean;
+    data?: { message: string; created: number; drivers: { driver_id: string; name: string; phone: string; vehicle_id: string; truck_number: string }[] };
+    error?: string;
+    rowErrors?: { index: number; error: string }[];
+  }> => {
+    try {
+      const response = await fetchWithAuth('/customer/drivers/bulk', {
+        method: 'POST',
+        body: JSON.stringify({ drivers }),
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        return {
+          success: false,
+          error: data.error || data.message || 'Bulk registration failed',
+          rowErrors: Array.isArray(data.results) ? data.results : undefined,
+        };
+      }
+      return { success: true, data };
+    } catch (error) {
+      return { success: false, error: error instanceof Error ? error.message : 'Network error' };
+    }
+  },
+
   update: async (id: string, data: Partial<{ name: string; phone: string; email: string; nrc: string; nationality: string }>) => {
     return apiRequest<MessageResponse>(`/customer/drivers/${id}`, {
       method: 'PUT',

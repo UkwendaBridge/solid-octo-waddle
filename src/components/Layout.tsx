@@ -160,6 +160,11 @@ export default function Layout() {
                   </NavLink>
 
                   <span className="sidebar-section-label">Reports</span>
+                  <NavLink to="/omc/reports" className="sidebar-link">
+                    <BarChart3 size={18} />
+                    <span>Reports</span>
+                    <ChevronRight size={14} className="sidebar-link-arrow" />
+                  </NavLink>
                   <NavLink to="/omc/tank-levels" className="sidebar-link">
                     <Droplets size={18} />
                     <span>Tank Levels</span>
@@ -254,6 +259,11 @@ export default function Layout() {
                   <NavLink to="/dashboard/drivers" className="sidebar-link">
                     <Truck size={18} />
                     <span>Manage Drivers</span>
+                    <ChevronRight size={14} className="sidebar-link-arrow" />
+                  </NavLink>
+                  <NavLink to="/dashboard/bulk-drivers" className="sidebar-link">
+                    <Users size={18} />
+                    <span>Bulk Register Drivers</span>
                     <ChevronRight size={14} className="sidebar-link-arrow" />
                   </NavLink>
                   <NavLink to="/dashboard/vehicles" className="sidebar-link">
