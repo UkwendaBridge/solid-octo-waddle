@@ -34,6 +34,7 @@ interface BulkRow {
   vehicleId: string;
   fuelType: FuelType;
   volume: number;
+  destination: string;
   status: RowStatus;
   message?: string;
 }
@@ -45,6 +46,7 @@ const makeRow = (partial: Partial<BulkRow> = {}): BulkRow => ({
   vehicleId: '',
   fuelType: 'Diesel',
   volume: 0,
+  destination: '',
   status: 'idle',
   ...partial,
 });
@@ -119,12 +121,12 @@ export default function BulkOrderPage() {
 
   // ── CSV import ────────────────────────────────────────────────────────────────
   const downloadTemplate = () => {
-    const header = 'driver,vehicle,fuel_type,volume';
+    const header = 'driver,vehicle,fuel_type,volume,destination';
     const sample = drivers.slice(0, 2).map(d => {
       const v = vehicleForDriver(d.id);
-      return `${d.name},${v?.regNumber ?? ''},Diesel,500`;
+      return `${d.name},${v?.regNumber ?? ''},Diesel,500,`;
     });
-    const csv = [header, ...(sample.length ? sample : ['John Doe,ABC123,Diesel,500'])].join('\n');
+    const csv = [header, ...(sample.length ? sample : ['John Doe,ABC123,Diesel,500,Ndola depot'])].join('\n');
     const blob = new Blob([csv], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -150,7 +152,7 @@ export default function BulkOrderPage() {
     let unmatched = 0;
 
     for (const line of dataLines) {
-      const [driverRaw = '', vehicleRaw = '', fuelRaw = '', volumeRaw = ''] = line
+      const [driverRaw = '', vehicleRaw = '', fuelRaw = '', volumeRaw = '', destinationRaw = ''] = line
         .split(',')
         .map(c => c.trim());
 
@@ -175,6 +177,7 @@ export default function BulkOrderPage() {
           vehicleId: vehicle?.id || '',
           fuelType,
           volume,
+          destination: destinationRaw,
         }),
       );
     }
@@ -257,6 +260,7 @@ export default function BulkOrderPage() {
         vehicle_id: row.vehicleId,
         requested_fuel: row.volume,
         fuel_grade: row.fuelType.toLowerCase() as 'petrol' | 'diesel',
+        destination: row.destination.trim() || undefined,
       })),
       autoSend,
     );
@@ -355,6 +359,7 @@ export default function BulkOrderPage() {
               <th>Vehicle</th>
               <th style={{ width: 130 }}>Fuel Type</th>
               <th style={{ width: 150 }}>Volume (L)</th>
+              <th style={{ width: 160 }}>Destination</th>
               <th style={{ width: 180 }}>Status</th>
               <th style={{ width: 50 }} />
             </tr>
@@ -425,6 +430,14 @@ export default function BulkOrderPage() {
                           : 'No tank limit set'}
                       </div>
                     )}
+                  </td>
+                  <td>
+                    <input
+                      type="text"
+                      value={row.destination}
+                      placeholder="Optional"
+                      onChange={e => updateRow(row.uid, { destination: e.target.value })}
+                    />
                   </td>
                   <td>
                     {row.status === 'pending' && (

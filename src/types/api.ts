@@ -141,6 +141,7 @@ export interface BulkOrderInput {
   vehicle_id: string;
   requested_fuel: number;
   fuel_grade: 'petrol' | 'diesel';
+  destination?: string;
 }
 
 export interface BulkOrderRowError {
