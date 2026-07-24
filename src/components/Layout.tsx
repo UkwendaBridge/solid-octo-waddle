@@ -8,6 +8,7 @@ import {
   ClipboardList,
   LogOut,
   ChevronRight,
+  ChevronDown,
   User,
   Truck,
   Car,
@@ -35,6 +36,7 @@ export default function Layout() {
   const navigate = useNavigate();
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [reportsOpen, setReportsOpen] = useState(location.pathname.startsWith('/dashboard/reports'));
 
   // Close sidebar on route change (mobile)
   useEffect(() => {
@@ -276,11 +278,41 @@ export default function Layout() {
                     <span>My Balance</span>
                     <ChevronRight size={14} className="sidebar-link-arrow" />
                   </NavLink>
-                  <NavLink to="/dashboard/reports" className="sidebar-link">
+                  <button
+                    type="button"
+                    className="sidebar-link"
+                    aria-expanded={reportsOpen}
+                    onClick={() => setReportsOpen((v) => !v)}
+                    style={{ width: '100%', background: 'none', border: 'none', cursor: 'pointer', font: 'inherit', textAlign: 'left' }}
+                  >
                     <BarChart3 size={18} />
                     <span>Reports</span>
-                    <ChevronRight size={14} className="sidebar-link-arrow" />
-                  </NavLink>
+                    <ChevronDown
+                      size={14}
+                      className="sidebar-link-arrow"
+                      style={{ transform: reportsOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }}
+                    />
+                  </button>
+                  {reportsOpen && (
+                    <div className="sidebar-submenu" style={{ display: 'flex', flexDirection: 'column' }}>
+                      {[
+                        { to: '/dashboard/reports', label: 'Overview', end: true },
+                        { to: '/dashboard/reports/detailed', label: 'Detailed report' },
+                        { to: '/dashboard/reports/consumption', label: 'Consumption report' },
+                        { to: '/dashboard/reports/destination', label: 'Destination report' },
+                      ].map((s) => (
+                        <NavLink
+                          key={s.to}
+                          to={s.to}
+                          end={s.end}
+                          className="sidebar-link"
+                          style={{ paddingLeft: 44, fontSize: 13 }}
+                        >
+                          <span>{s.label}</span>
+                        </NavLink>
+                      ))}
+                    </div>
+                  )}
                   <NavLink to="/dashboard/settings" className="sidebar-link">
                     <Settings size={18} />
                     <span>Settings</span>

@@ -234,6 +234,16 @@ export default function NewOrderPage() {
               {errors.fuelVolumeAllocated && <span className="field-error">{errors.fuelVolumeAllocated}</span>}
             </div>
           </div>
+          <div className="form-group">
+            <label htmlFor="destination"><MapPin size={14} /> Destination (optional)</label>
+            <input
+              id="destination"
+              type="text"
+              value={form.destination || ''}
+              onChange={e => updateField('destination', e.target.value)}
+              placeholder="e.g. Ndola depot, Copperbelt run"
+            />
+          </div>
           {selectedVehicle && form.fuelVolumeAllocated > 0 && (
             <div className="fill-indicator">
               <div className="fill-bar">

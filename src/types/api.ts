@@ -113,6 +113,8 @@ export interface BackendOrder {
   remaining_fuel?: string | number;
   money_drawn?: string | number;
   fuel_grade: string;
+  /** Free-text destination for the fuel run (optional). Drives the destination report. */
+  destination?: string | null;
   otp_code?: string;
   status: string;
   created_at: string;

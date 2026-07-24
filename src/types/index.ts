@@ -101,6 +101,8 @@ export interface NewOrderFormData {
   vehicleId: string;
   fuelVolumeAllocated: number;
   fuelType: FuelType;
+  /** Optional free-text destination for the fuel run. */
+  destination?: string;
 }
 
 export interface Site {

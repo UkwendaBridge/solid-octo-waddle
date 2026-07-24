@@ -134,6 +134,7 @@ export function OrderProvider({ children }: { children: ReactNode }) {
         vehicle_id: data.vehicleId,
         requested_fuel: data.fuelVolumeAllocated,
         fuel_grade: data.fuelType.toLowerCase() as 'petrol' | 'diesel',
+        destination: data.destination?.trim() || undefined,
       });
 
       if (result.success && result.data) {

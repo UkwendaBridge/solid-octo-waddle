@@ -387,7 +387,7 @@ export const customerOrders = {
     });
   },
 
-  create: async (data: { driver_id: string; vehicle_id: string; requested_fuel: number; fuel_grade: string; attendant_id?: string }) => {
+  create: async (data: { driver_id: string; vehicle_id: string; requested_fuel: number; fuel_grade: string; destination?: string; attendant_id?: string }) => {
     return apiRequest<OrderCreateResponse>('/customer/orders/create', {
       method: 'POST',
       body: JSON.stringify(data),

@@ -109,7 +109,7 @@ export default function App() {
                         <Route path="orders" element={<CustomerOrdersPage />} />
                         <Route path="drivers" element={<DriverPage />} />
                         <Route path="bulk-drivers" element={<BulkDriverPage />} />
-                        <Route path="reports" element={<CustomerReportsPage />} />
+                        <Route path="reports/*" element={<CustomerReportsPage />} />
                         <Route path="vehicles" element={<VehiclePage />} />
                         <Route path="balance" element={<CustomerBalancePage />} />
                         <Route path="settings" element={<CustomerSettingsPage />} />
