@@ -137,8 +137,11 @@ export default function TankLevelsPage() {
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    setIsRefreshing(false);
+    try {
+      // TODO: refetch tank levels once this page is wired to the API
+    } finally {
+      setIsRefreshing(false);
+    }
   };
 
   return (

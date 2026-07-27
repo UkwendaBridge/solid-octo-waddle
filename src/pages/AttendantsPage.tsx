@@ -111,7 +111,6 @@ export default function AttendantsPage() {
   const handleAdd = async () => {
     if (!newAttendant.name || !newAttendant.phone) return;
     setIsSubmitting(true);
-    await new Promise(r => setTimeout(r, 500));
     setAttendants([{ id: `ATT-${String(attendants.length + 1).padStart(3, '0')}`, ...newAttendant, hireDate: new Date().toISOString().split('T')[0], status: 'active' }, ...attendants]);
     setNewAttendant(EMPTY_ATTENDANT);
     setShowAddModal(false);
@@ -123,7 +122,6 @@ export default function AttendantsPage() {
   const handleSave = async () => {
     if (!editData) return;
     setIsSubmitting(true);
-    await new Promise(r => setTimeout(r, 500));
     setAttendants(attendants.map(a => a.id === editData.id ? editData : a));
     setShowEditModal(false);
     setEditData(null);

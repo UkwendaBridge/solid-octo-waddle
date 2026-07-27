@@ -109,7 +109,6 @@ export default function StationsPage() {
   const handleAdd = async () => {
     if (!newStation.name || !newStation.address) return;
     setIsSubmitting(true);
-    await new Promise(r => setTimeout(r, 500));
     setStations([{ id: `STN-${String(stations.length + 1).padStart(3, '0')}`, ...newStation, status: 'active', createdAt: new Date().toISOString().split('T')[0] }, ...stations]);
     setNewStation(EMPTY_STATION);
     setShowAddModal(false);
@@ -121,7 +120,6 @@ export default function StationsPage() {
   const handleSave = async () => {
     if (!editData) return;
     setIsSubmitting(true);
-    await new Promise(r => setTimeout(r, 500));
     setStations(stations.map(s => s.id === editData.id ? editData : s));
     setShowEditModal(false);
     setEditData(null);

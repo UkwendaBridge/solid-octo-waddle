@@ -107,7 +107,6 @@ export default function PriceSchedulerPage() {
   const handleAdd = async () => {
     if (!newSchedule.newPrice || !newSchedule.effectiveDate) return;
     setIsSubmitting(true);
-    await new Promise(resolve => setTimeout(resolve, 500));
 
     const station = STATIONS.find(s => s.id === newSchedule.stationId);
     const entry: ScheduledPrice = {

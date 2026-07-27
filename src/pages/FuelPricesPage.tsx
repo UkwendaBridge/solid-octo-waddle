@@ -103,8 +103,11 @@ export default function FuelPricesPage() {
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    setIsRefreshing(false);
+    try {
+      // TODO: refetch prices once this page is wired to the API
+    } finally {
+      setIsRefreshing(false);
+    }
   };
 
   const getPriceChange = (current: number, previous: number) => {

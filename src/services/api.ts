@@ -92,8 +92,11 @@ async function fetchWithAuth(endpoint: string, options: RequestInit = {}): Promi
     headers,
   });
 
-  // Auto-logout on 401 Unauthorized
-  if (response.status === 401) {
+  // Auto-logout on 401 — but only when an existing session expired.
+  // A rejected login attempt also returns 401; reloading the page there
+  // would throw away the error message and restart the whole app.
+  const isLoginAttempt = endpoint.includes('/auth/login');
+  if (response.status === 401 && token && !isLoginAttempt) {
     removeToken();
     sessionStorage.removeItem('maestro_user');
     window.location.href = '/login';

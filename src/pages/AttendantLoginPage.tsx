@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Fuel, LogIn, Loader2, Lock, Eye, EyeOff, User } from 'lucide-react';
+import { Fuel, LogIn, Lock, Eye, EyeOff, User } from 'lucide-react';
 
 interface AttendantLoginPageProps {
   onLogin: (attendantId: string) => void;
@@ -9,7 +9,6 @@ export default function AttendantLoginPage({ onLogin }: AttendantLoginPageProps)
   const [attendantId, setAttendantId] = useState('');
   const [pin, setPin] = useState('');
   const [showPin, setShowPin] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -21,13 +20,7 @@ export default function AttendantLoginPage({ onLogin }: AttendantLoginPageProps)
       return;
     }
 
-    setIsLoading(true);
-    
-    // Simulate authentication
-    setTimeout(() => {
-      setIsLoading(false);
-      onLogin(attendantId);
-    }, 1000);
+    onLogin(attendantId);
   };
 
   return (
@@ -64,7 +57,6 @@ export default function AttendantLoginPage({ onLogin }: AttendantLoginPageProps)
                     value={attendantId}
                     onChange={(e) => setAttendantId(e.target.value)}
                     placeholder="Enter your attendant ID"
-                    disabled={isLoading}
                   />
                 </div>
               </div>
@@ -79,7 +71,6 @@ export default function AttendantLoginPage({ onLogin }: AttendantLoginPageProps)
                     value={pin}
                     onChange={(e) => setPin(e.target.value)}
                     placeholder="Enter your PIN"
-                    disabled={isLoading}
                   />
                   <button
                     type="button"
@@ -92,22 +83,9 @@ export default function AttendantLoginPage({ onLogin }: AttendantLoginPageProps)
                 </div>
               </div>
 
-              <button
-                type="submit"
-                className="btn btn-primary btn-block"
-                disabled={isLoading}
-              >
-                {isLoading ? (
-                  <>
-                    <Loader2 size={18} className="animate-spin" />
-                    Authenticating...
-                  </>
-                ) : (
-                  <>
-                    <LogIn size={18} />
-                    Authorize Order
-                  </>
-                )}
+              <button type="submit" className="btn btn-primary btn-block">
+                <LogIn size={18} />
+                Authorize Order
               </button>
             </form>
           </div>

@@ -147,9 +147,6 @@ export default function FinancialsPage() {
 
     setIsSubmitting(true);
 
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 500));
-
     const payment: Payment = {
       id: `pay-${Date.now()}`,
       dateTime: new Date().toISOString(),

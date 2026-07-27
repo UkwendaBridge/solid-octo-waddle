@@ -107,9 +107,6 @@ export default function SetFuelPricesPage() {
     setIsSubmitting(true);
     setSuccessMessage('');
 
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1500));
-
     // Update current prices with new prices
     setStationPrices(prev =>
       prev.map(station => ({
