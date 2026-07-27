@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useOrders } from '../context/OrderContext';
 import { useDrivers } from '../context/DriverContext';
 import { useVehicles } from '../context/VehicleContext';
 import type { NewOrderFormData, FuelType } from '../types';
+import SearchableSelect from '../components/SearchableSelect';
 import {
   Send,
   Fuel,
@@ -39,6 +40,21 @@ export default function NewOrderPage() {
   const [submitted, setSubmitted] = useState<{ orderId: string } | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+
+  const driverOptions = useMemo(
+    () => drivers.map(d => ({ value: d.id, label: d.name, sublabel: d.phone })),
+    [drivers]
+  );
+
+  const vehicleOptions = useMemo(
+    () =>
+      vehicles.map(v => ({
+        value: v.id,
+        label: v.regNumber,
+        sublabel: `${v.type} · ${v.tankCapacity}L`,
+      })),
+    [vehicles]
+  );
 
   if (!user) return null;
 
@@ -155,17 +171,16 @@ export default function NewOrderPage() {
           <h3><User size={18} /> Driver Information</h3>
           <div className="form-group">
             <label htmlFor="driverId">Select Driver</label>
-            <select
+            <SearchableSelect
               id="driverId"
+              options={driverOptions}
               value={form.driverId}
-              onChange={e => updateField('driverId', e.target.value)}
-              className={errors.driverId ? 'input-error' : ''}
-            >
-              <option value="">-- Select a driver --</option>
-              {myDrivers.map(d => (
-                <option key={d.id} value={d.id}>{d.name} ({d.phone})</option>
-              ))}
-            </select>
+              onChange={v => updateField('driverId', v)}
+              placeholder="-- Select a driver --"
+              searchPlaceholder="Search by name or phone..."
+              emptyText="No drivers match your search"
+              hasError={!!errors.driverId}
+            />
             {errors.driverId && <span className="field-error">{errors.driverId}</span>}
           </div>
         </div>
@@ -175,17 +190,16 @@ export default function NewOrderPage() {
           <h3><Car size={18} /> Vehicle Details</h3>
           <div className="form-group">
             <label htmlFor="vehicleId">Select Vehicle</label>
-            <select
+            <SearchableSelect
               id="vehicleId"
+              options={vehicleOptions}
               value={form.vehicleId}
-              onChange={e => updateField('vehicleId', e.target.value)}
-              className={errors.vehicleId ? 'input-error' : ''}
-            >
-              <option value="">-- Select a vehicle --</option>
-              {myVehicles.map(v => (
-                <option key={v.id} value={v.id}>{v.regNumber} - {v.type}</option>
-              ))}
-            </select>
+              onChange={v => updateField('vehicleId', v)}
+              placeholder="-- Select a vehicle --"
+              searchPlaceholder="Search by reg number or type..."
+              emptyText="No vehicles match your search"
+              hasError={!!errors.vehicleId}
+            />
             {errors.vehicleId && <span className="field-error">{errors.vehicleId}</span>}
           </div>
           
