@@ -25,26 +25,6 @@ export interface BackendCustomerProfile {
   company_name?: string;
   address?: string;
   created_at?: string;
-  /** The account this login manages. Equals `id` for an owner, the owner's id for a sub-user. */
-  customer_id?: string;
-  /** True when this login is an extra user on someone else's account. */
-  is_sub_user?: boolean;
-}
-
-// ── Customer account users (extra logins on one customer account) ──
-
-export interface CustomerUser {
-  id: string;
-  email: string;
-  name: string;
-  phone?: string | null;
-  parent_customer_id: string;
-  created_at: string;
-}
-
-export interface CustomerUserCreateResponse {
-  message: string;
-  user: CustomerUser;
 }
 
 export interface CustomerLoginResponse {

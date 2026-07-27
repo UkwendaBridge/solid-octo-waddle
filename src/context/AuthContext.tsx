@@ -58,7 +58,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               role: 'customer',
               phone: result.data.customer.phone,
               companyName: result.data.customer.company_name,
-              isSubUser: result.data.customer.is_sub_user === true,
             };
             setUser(userData);
             sessionStorage.setItem('maestro_user', JSON.stringify(userData));

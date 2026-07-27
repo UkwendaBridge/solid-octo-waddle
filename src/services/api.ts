@@ -50,7 +50,6 @@ import type {
   StationCheckOrderResponse,
   MessageResponse,
   CustomerProfileResponse,
-  CustomerUserCreateResponse,
   DriverProfileResponse,
   CustomerBalanceResponse,
   BalanceHistoryResponse,
@@ -282,22 +281,6 @@ export const customerAuth = {
   updateProfile: async (data: { name?: string; phone?: string; address?: string }) => {
     return apiRequest<MessageResponse>('/customer/profile', {
       method: 'PUT',
-      body: JSON.stringify(data),
-    });
-  },
-};
-
-// =============================================
-// CUSTOMER ACCOUNT USERS
-// =============================================
-
-// A sub-user is a second login on the SAME customer account: their own email
-// and password, but the same drivers, vehicles, orders and balance. They are
-// not separate customers — the OMC never sees them.
-export const customerUsers = {
-  create: async (data: { email: string; password: string; name: string; phone?: string }) => {
-    return apiRequest<CustomerUserCreateResponse>('/customer/users', {
-      method: 'POST',
       body: JSON.stringify(data),
     });
   },
@@ -636,7 +619,6 @@ export default {
   omcCustomers,
   omcOrders,
   customerAuth,
-  customerUsers,
   customerDrivers,
   customerVehicles,
   customerOrders,
