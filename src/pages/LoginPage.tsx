@@ -14,7 +14,7 @@ const ROLES: { value: UserRole; label: string; icon: React.ReactNode }[] = [
 ];
 
 export default function LoginPage() {
-  const { login, isLoading, error: authError } = useAuth();
+  const { login, isLoading } = useAuth();
   const navigate = useNavigate();
 
   const [role, setRole] = useState<UserRole>('customer');
@@ -40,13 +40,17 @@ export default function LoginPage() {
       return;
     }
 
-    const success = await login(identifier, password, role);
-    if (success) {
+    // login() RETURNS the reason it failed. Reading the context's `error` here
+    // instead would give the value from before this submit ran — a stale closure
+    // that showed "Invalid credentials" no matter what actually went wrong,
+    // hiding server errors, bad API URLs and network failures.
+    const result = await login(identifier, password, role);
+    if (result.ok) {
       if (role === 'omc') navigate('/omc');
       else if (role === 'customer') navigate('/dashboard');
       else if (role === 'driver') navigate('/driver');
     } else {
-      setError(authError || 'Invalid credentials');
+      setError(result.error);
     }
   };
 

@@ -1,5 +1,7 @@
 // Push Notification Service
 
+import { API_BASE_URL } from './api';
+
 const VAPID_PUBLIC_KEY = 'BIoHk0PBsUvfL65sg7OdCBHdXMgeCO9uUf7MUt-s3q11Pk6qux5eHsIPQsueAVRVfaErEzRwyCs3QX8RZIr9mV8';
 
 // Convert VAPID key to Uint8Array
@@ -57,8 +59,8 @@ export async function subscribeToPush(registration: ServiceWorkerRegistration): 
 }
 
 export async function sendSubscriptionToServer(subscription: PushSubscription, token: string): Promise<boolean> {
-  const API_BASE_URL = (import.meta.env.VITE_API_URL || 'https://maest-dist.onrender.com').replace(/\/+$/, '');
-  
+  // Uses the shared, scheme-normalised base from ./api — a second local copy of this
+  // logic is how push kept pointing at a suspended host after the API URL was fixed.
   try {
     const response = await fetch(`${API_BASE_URL}/push/subscribe`, {
       method: 'POST',

@@ -2,9 +2,16 @@ import { createContext, useContext, useState, useCallback, type ReactNode } from
 import type { User, UserRole } from '../types';
 import { omcAuth, customerAuth, driverAuth, setToken, removeToken, getToken } from '../services/api';
 
+/**
+ * Result of a login attempt. The failure reason is RETURNED rather than only
+ * stored in context state: a caller that reads `error` right after awaiting
+ * login() sees the value from its previous render, not this attempt's.
+ */
+export type LoginResult = { ok: true } | { ok: false; error: string };
+
 interface AuthContextType {
   user: User | null;
-  login: (email: string, password: string, role: UserRole) => Promise<boolean>;
+  login: (email: string, password: string, role: UserRole) => Promise<LoginResult>;
   logout: () => void;
   isAuthenticated: boolean;
   isLoading: boolean;
@@ -21,7 +28,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const login = useCallback(async (identifier: string, password: string, role: UserRole): Promise<boolean> => {
+  const login = useCallback(async (identifier: string, password: string, role: UserRole): Promise<LoginResult> => {
     setIsLoading(true);
     setError(null);
 
@@ -43,7 +50,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             setUser(userData);
             sessionStorage.setItem('maestro_user', JSON.stringify(userData));
             setIsLoading(false);
-            return true;
+            return { ok: true };
           }
           break;
 
@@ -62,7 +69,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             setUser(userData);
             sessionStorage.setItem('maestro_user', JSON.stringify(userData));
             setIsLoading(false);
-            return true;
+            return { ok: true };
           }
           break;
 
@@ -82,18 +89,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             setUser(userData);
             sessionStorage.setItem('maestro_user', JSON.stringify(userData));
             setIsLoading(false);
-            return true;
+            return { ok: true };
           }
           break;
       }
 
-      setError(result?.error || 'Login failed');
+      const message = result?.error || 'Login failed';
+      setError(message);
       setIsLoading(false);
-      return false;
+      return { ok: false, error: message };
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Login failed');
+      const message = err instanceof Error ? err.message : 'Login failed';
+      setError(message);
       setIsLoading(false);
-      return false;
+      return { ok: false, error: message };
     }
   }, []);
 

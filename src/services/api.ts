@@ -59,7 +59,49 @@ import type {
 } from '../types/api';
 
 // API Configuration and Base Functions
-const API_BASE_URL = (import.meta.env.VITE_API_URL || 'https://maest-dist.onrender.com').replace(/\/+$/, '');
+const RAW_API_URL = (import.meta.env.VITE_API_URL || 'https://symmetrical-winner-zawt.onrender.com').trim();
+
+/**
+ * Turn whatever the deploy environment supplied into an absolute origin.
+ *
+ * A VITE_API_URL that isn't a valid absolute URL makes every fetch RELATIVE, so
+ * requests silently go to our own origin — the SPA rewrite answers with index.html
+ * or a 405, and the app reports it as a login failure. Two typos cause this and both
+ * are repaired here rather than trusting the dashboard to be exact:
+ *
+ *   "host.example.com"              -> missing scheme entirely
+ *   "https//host.example.com"       -> missing the colon (not absolute, so still relative)
+ *   "https:/host.example.com"       -> only one slash
+ *   "https://https//host.example.com" -> scheme pasted on top of a scheme; absolute, but
+ *                                        the host is literally "https" (ERR_NAME_NOT_RESOLVED)
+ */
+function normalizeBaseUrl(value: string): string {
+  let rest = value.replace(/\/+$/, '');
+  let scheme = 'https';
+  let sawScheme = false;
+
+  // Strip every leading scheme-like prefix, keeping the first one. The pattern needs a
+  // slash after the optional colon, so a hostname such as "httpbin.org" is left alone.
+  for (;;) {
+    const match = rest.match(/^(https?):?\/{1,2}/i);
+    if (!match) break;
+    if (!sawScheme) {
+      scheme = match[1].toLowerCase();
+      sawScheme = true;
+    }
+    rest = rest.slice(match[0].length);
+  }
+
+  return `${scheme}://${rest}`;
+}
+
+export const API_BASE_URL = normalizeBaseUrl(RAW_API_URL);
+
+// Loud in production too: a wrong API URL breaks every request, and the symptom
+// ("Invalid credentials") points nowhere near the cause.
+if (API_BASE_URL !== RAW_API_URL.replace(/\/+$/, '')) {
+  console.warn(`[api] VITE_API_URL "${RAW_API_URL}" is not an absolute URL; using "${API_BASE_URL}"`);
+}
 
 // Token management
 export const getToken = (): string | null => {
@@ -112,10 +154,30 @@ async function apiRequest<T>(
 ): Promise<{ success: boolean; data?: T; error?: string }> {
   try {
     const response = await fetchWithAuth(endpoint, options);
-    const data = await response.json();
+
+    // Read as text first: a proxy, a suspended host or an SPA rewrite answers with HTML or
+    // an empty body, and response.json() would throw a JSON syntax error that tells the
+    // user nothing about what actually went wrong.
+    const body = await response.text();
+    let data: (T & { error?: string; message?: string }) | null = null;
+    try {
+      data = body ? JSON.parse(body) : null;
+    } catch {
+      return {
+        success: false,
+        error: `Server returned a non-JSON response (HTTP ${response.status}). Check the API URL.`,
+      };
+    }
 
     if (!response.ok) {
-      return { success: false, error: data.error || data.message || 'Request failed' };
+      return {
+        success: false,
+        error: data?.error || data?.message || `Request failed (HTTP ${response.status})`,
+      };
+    }
+
+    if (data === null) {
+      return { success: false, error: `Server returned an empty response (HTTP ${response.status})` };
     }
 
     return { success: true, data };
