@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { User, Mail, Phone, KeyRound, Loader2, Eye, EyeOff, Building2 } from 'lucide-react';
-import { customerAuth } from '../services/api';
+import { User, Mail, Phone, KeyRound, Loader2, Eye, EyeOff, Building2, UserPlus, Users } from 'lucide-react';
+import { customerAuth, customerUsers } from '../services/api';
 
 export default function CustomerSettingsPage() {
   const { user } = useAuth();
@@ -15,6 +15,17 @@ export default function CustomerSettingsPage() {
   const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [passwordSuccess, setPasswordSuccess] = useState(false);
   const [passwordError, setPasswordError] = useState<string | null>(null);
+
+  // New account user state
+  const [userName, setUserName] = useState('');
+  const [userEmail, setUserEmail] = useState('');
+  const [userPhone, setUserPhone] = useState('');
+  const [userPassword, setUserPassword] = useState('');
+  const [userConfirmPassword, setUserConfirmPassword] = useState('');
+  const [showUserPassword, setShowUserPassword] = useState(false);
+  const [isCreatingUser, setIsCreatingUser] = useState(false);
+  const [userSuccess, setUserSuccess] = useState<string | null>(null);
+  const [userError, setUserError] = useState<string | null>(null);
 
   if (!user || user.role !== 'customer') {
     return (
@@ -59,6 +70,50 @@ export default function CustomerSettingsPage() {
       setPasswordError(err instanceof Error ? err.message : 'Failed to change password');
     } finally {
       setIsChangingPassword(false);
+    }
+  };
+
+  const handleCreateUser = async () => {
+    setUserError(null);
+    setUserSuccess(null);
+
+    if (!userName.trim() || !userEmail.trim() || !userPassword || !userConfirmPassword) {
+      setUserError('Name, email, and both password fields are required');
+      return;
+    }
+
+    if (userPassword.length < 6) {
+      setUserError('Password must be at least 6 characters');
+      return;
+    }
+
+    if (userPassword !== userConfirmPassword) {
+      setUserError('Passwords do not match');
+      return;
+    }
+
+    setIsCreatingUser(true);
+    try {
+      const result = await customerUsers.create({
+        name: userName.trim(),
+        email: userEmail.trim(),
+        password: userPassword,
+        phone: userPhone.trim() || undefined,
+      });
+      if (result.success && result.data) {
+        setUserSuccess(`${result.data.user.name} can now sign in with ${result.data.user.email}`);
+        setUserName('');
+        setUserEmail('');
+        setUserPhone('');
+        setUserPassword('');
+        setUserConfirmPassword('');
+      } else {
+        setUserError(result.error || 'Failed to create user');
+      }
+    } catch (err) {
+      setUserError(err instanceof Error ? err.message : 'Failed to create user');
+    } finally {
+      setIsCreatingUser(false);
     }
   };
 
@@ -119,6 +174,8 @@ export default function CustomerSettingsPage() {
             <input
               type={showCurrentPassword ? 'text' : 'password'}
               value={currentPassword}
+              onChange={e => setCurrentPassword(e.target.value)}
+              placeholder="Current password"
               className="form-input pr-10"
             />
             <button
@@ -138,6 +195,8 @@ export default function CustomerSettingsPage() {
               <input
                 type={showNewPassword ? 'text' : 'password'}
                 value={newPassword}
+                onChange={e => setNewPassword(e.target.value)}
+                placeholder="New password"
                 className="form-input pr-10"
               />
               <button
@@ -176,6 +235,103 @@ export default function CustomerSettingsPage() {
           {passwordSuccess && (
             <span className="text-success flex items-center gap-2">
               ✓ Password changed successfully
+            </span>
+          )}
+        </div>
+      </div>
+
+      <div className="form-section mt-8">
+        <h3><Users size={18} /> Account Users</h3>
+
+        <p className="text-muted text-sm">
+          Add someone else to this account. They sign in with their own email and
+          password and work with the same drivers, vehicles, orders and balance
+          you do — nothing is separated.
+          {user.isSubUser && ' Anyone you add joins this account alongside you.'}
+        </p>
+
+        <div className="form-row mt-4">
+          <div className="form-group">
+            <label><User size={14} /> Full Name *</label>
+            <input
+              type="text"
+              className="form-input"
+              value={userName}
+              onChange={e => setUserName(e.target.value)}
+              placeholder="e.g. Jane Ops"
+            />
+          </div>
+          <div className="form-group">
+            <label><Mail size={14} /> Email *</label>
+            <input
+              type="email"
+              className="form-input"
+              value={userEmail}
+              onChange={e => setUserEmail(e.target.value)}
+              placeholder="ops@company.com"
+            />
+          </div>
+        </div>
+
+        <div className="form-group">
+          <label><Phone size={14} /> Phone (Optional)</label>
+          <input
+            type="tel"
+            className="form-input"
+            value={userPhone}
+            onChange={e => setUserPhone(e.target.value)}
+            placeholder="0541234567"
+          />
+        </div>
+
+        <div className="form-row">
+          <div className="form-group">
+            <label>Password *</label>
+            <div className="relative">
+              <input
+                type={showUserPassword ? 'text' : 'password'}
+                className="form-input pr-10"
+                value={userPassword}
+                onChange={e => setUserPassword(e.target.value)}
+                placeholder="Their login password"
+              />
+              <button
+                type="button"
+                className="input-icon-btn"
+                onClick={() => setShowUserPassword(!showUserPassword)}
+              >
+                {showUserPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
+          </div>
+          <div className="form-group">
+            <label>Confirm Password *</label>
+            <input
+              type="password"
+              className="form-input"
+              value={userConfirmPassword}
+              onChange={e => setUserConfirmPassword(e.target.value)}
+              placeholder="Confirm password"
+            />
+          </div>
+        </div>
+
+        {userError && (
+          <div className="form-error mt-4">{userError}</div>
+        )}
+
+        <div className="action-buttons mt-6">
+          <button
+            className="btn btn-primary"
+            onClick={handleCreateUser}
+            disabled={isCreatingUser || !userName.trim() || !userEmail.trim() || !userPassword || !userConfirmPassword}
+          >
+            {isCreatingUser ? <Loader2 size={16} className="animate-spin" /> : <UserPlus size={16} />}
+            {isCreatingUser ? 'Creating...' : 'Add User'}
+          </button>
+          {userSuccess && (
+            <span className="text-success flex items-center gap-2">
+              ✓ {userSuccess}
             </span>
           )}
         </div>

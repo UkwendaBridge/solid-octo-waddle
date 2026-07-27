@@ -8,6 +8,12 @@ export interface User {
   phone?: string;
   companyName?: string;  // for customers & OMC
   customerId?: string;   // for drivers linking them to a customer/company
+  /**
+   * Customers only: true when this login is an extra user on another
+   * customer's account rather than the account owner. Sub-users see and do
+   * everything the owner does — this only drives wording in the UI.
+   */
+  isSubUser?: boolean;
 }
 
 export interface Customer {
