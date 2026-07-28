@@ -41,9 +41,18 @@ export default function NewOrderPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
+  // Show each driver's vehicle in the list, so the auto-fill is no surprise.
   const driverOptions = useMemo(
-    () => drivers.map(d => ({ value: d.id, label: d.name, sublabel: d.phone })),
-    [drivers]
+    () =>
+      drivers.map(d => {
+        const assigned = vehicles.find(v => v.assignedDriverId === d.id);
+        return {
+          value: d.id,
+          label: d.name,
+          sublabel: assigned ? `${d.phone} · ${assigned.regNumber}` : d.phone,
+        };
+      }),
+    [drivers, vehicles]
   );
 
   const vehicleOptions = useMemo(
@@ -63,10 +72,28 @@ export default function NewOrderPage() {
 
   const selectedDriver = myDrivers.find(d => d.id === form.driverId);
   const selectedVehicle = myVehicles.find(v => v.id === form.vehicleId);
+  const autoFilledVehicle = !!selectedVehicle && selectedVehicle.assignedDriverId === form.driverId;
 
   const updateField = <K extends keyof NewOrderFormData>(key: K, value: NewOrderFormData[K]) => {
     setForm(prev => ({ ...prev, [key]: value }));
     setErrors(prev => ({ ...prev, [key]: undefined }));
+  };
+
+  // Picking a driver pulls in the vehicle assigned to them, so the common case
+  // needs no second selection. A driver with no vehicle of their own leaves any
+  // pool vehicle alone, but clears one belonging to a different driver.
+  const handleDriverChange = (driverId: string) => {
+    const assigned = myVehicles.find(v => v.assignedDriverId === driverId);
+    setForm(prev => {
+      const current = myVehicles.find(v => v.id === prev.vehicleId);
+      const keepCurrent = current && !current.assignedDriverId;
+      return {
+        ...prev,
+        driverId,
+        vehicleId: assigned?.id ?? (keepCurrent ? prev.vehicleId : ''),
+      };
+    });
+    setErrors(prev => ({ ...prev, driverId: undefined, vehicleId: undefined }));
   };
 
   const validate = (): boolean => {
@@ -77,7 +104,10 @@ export default function NewOrderPage() {
     if (!form.vehicleId) newErrors.vehicleId = 'Please select a vehicle';
     if (form.fuelVolumeAllocated <= 0) newErrors.fuelVolumeAllocated = 'Volume must be greater than 0';
     
-    if (selectedVehicle && form.fuelVolumeAllocated > selectedVehicle.tankCapacity) {
+    // Most vehicles are recorded with a tank capacity of 0, meaning "not known"
+    // rather than "holds nothing" — capping against it would block every order
+    // on those. Only enforce the cap where a real capacity is on file.
+    if (selectedVehicle && selectedVehicle.tankCapacity > 0 && form.fuelVolumeAllocated > selectedVehicle.tankCapacity) {
       newErrors.fuelVolumeAllocated = 'Volume cannot exceed tank capacity';
     }
 
@@ -175,7 +205,7 @@ export default function NewOrderPage() {
               id="driverId"
               options={driverOptions}
               value={form.driverId}
-              onChange={v => updateField('driverId', v)}
+              onChange={handleDriverChange}
               placeholder="-- Select a driver --"
               searchPlaceholder="Search by name or phone..."
               emptyText="No drivers match your search"
@@ -201,6 +231,11 @@ export default function NewOrderPage() {
               hasError={!!errors.vehicleId}
             />
             {errors.vehicleId && <span className="field-error">{errors.vehicleId}</span>}
+            {!errors.vehicleId && autoFilledVehicle && (
+              <span className="field-hint">
+                Assigned to {selectedDriver?.name}. Change it if they are taking another vehicle.
+              </span>
+            )}
           </div>
           
           {selectedVehicle && (
@@ -211,7 +246,11 @@ export default function NewOrderPage() {
               </div>
               <div className="form-group">
                 <label>Tank Capacity (Litres)</label>
-                <input type="number" value={selectedVehicle.tankCapacity} disabled />
+                <input
+                  type="text"
+                  value={selectedVehicle.tankCapacity > 0 ? selectedVehicle.tankCapacity : 'Not recorded'}
+                  disabled
+                />
               </div>
             </div>
           )}
@@ -258,7 +297,9 @@ export default function NewOrderPage() {
               placeholder="e.g. Ndola depot, Copperbelt run"
             />
           </div>
-          {selectedVehicle && form.fuelVolumeAllocated > 0 && (
+          {/* Without a real capacity there is no percentage to show — dividing
+              by 0 renders "Infinity% of tank capacity". */}
+          {selectedVehicle && selectedVehicle.tankCapacity > 0 && form.fuelVolumeAllocated > 0 && (
             <div className="fill-indicator">
               <div className="fill-bar">
                 <div

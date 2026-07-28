@@ -1231,6 +1231,11 @@ body {
   font-weight: 500;
 }
 
+.field-hint {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
 /* ===== Searchable select (combobox) ===== */
 .searchable-select {
   position: relative;

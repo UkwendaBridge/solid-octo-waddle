@@ -1,4 +1,22 @@
 // Service Worker for Push Notifications
+//
+// This worker deliberately does NOT cache anything — it only shows notifications.
+// Earlier versions of the app shipped a precaching worker, and any device that
+// visited back then still has it installed, serving a stale app shell forever.
+// Without skipWaiting a replacement worker only sits in "waiting" until every tab
+// of the site is closed, which on a device someone leaves open is never.
+//
+// So: take over immediately and delete every cache a previous worker left behind.
+self.addEventListener('install', () => self.skipWaiting());
+
+self.addEventListener('activate', (event) => {
+  event.waitUntil(
+    caches
+      .keys()
+      .then((keys) => Promise.all(keys.map((key) => caches.delete(key))))
+      .then(() => self.clients.claim())
+  );
+});
 
 self.addEventListener('push', (event) => {
   const data = event.data?.json() ?? {
