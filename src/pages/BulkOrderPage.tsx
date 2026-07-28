@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useOrders } from '../context/OrderContext';
@@ -6,7 +6,8 @@ import { useDrivers } from '../context/DriverContext';
 import { useVehicles } from '../context/VehicleContext';
 import { useToast } from '../context/ToastContext';
 import { customerOrders } from '../services/api';
-import type { FuelType } from '../types';
+import SearchableSelect, { type SearchableOption } from '../components/SearchableSelect';
+import type { FuelType, Vehicle } from '../types';
 import {
   Plus,
   Trash2,
@@ -22,6 +23,9 @@ import {
 } from 'lucide-react';
 
 const FUEL_TYPES: FuelType[] = ['Petrol', 'Diesel'];
+
+// A-Z the way a reader expects: case- and accent-insensitive.
+const byName = (a: string, b: string) => a.localeCompare(b, undefined, { sensitivity: 'base' });
 
 // Must match BULK_ORDER_LIMIT on the backend (POST /customer/orders/bulk).
 const BULK_ORDER_LIMIT = 500;
@@ -65,6 +69,50 @@ export default function BulkOrderPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [done, setDone] = useState<{ created: number; failed: number } | null>(null);
 
+  // Drivers A-Z, each showing their assigned vehicle so the auto-fill is no
+  // surprise. Sorted on a copy — the context array is shared.
+  const driverOptions = useMemo(
+    () =>
+      [...drivers]
+        .sort((a, b) => byName(a.name, b.name))
+        .map(d => {
+          const assigned = vehicles.find(v => v.assignedDriverId === d.id);
+          return {
+            value: d.id,
+            label: d.name,
+            sublabel: assigned ? `${d.phone} · ${assigned.regNumber}` : d.phone,
+          };
+        }),
+    [drivers, vehicles],
+  );
+
+  // Bucketed once rather than per row: "add a row per driver" can produce
+  // hundreds of rows, and re-filtering every vehicle for each of them on every
+  // keystroke is what makes a page like this crawl. A row only ever offers its
+  // own driver's vehicles plus the unassigned pool, and both lists are tiny.
+  const { optionsByDriver, poolOptions } = useMemo(() => {
+    const toOption = (v: Vehicle) => ({
+      value: v.id,
+      label: v.regNumber,
+      sublabel: v.tankCapacity > 0 ? `${v.type} · ${v.tankCapacity}L` : v.type,
+    });
+    const byDriver = new Map<string, SearchableOption[]>();
+    const pool: SearchableOption[] = [];
+    for (const v of vehicles) {
+      if (v.assignedDriverId) {
+        const list = byDriver.get(v.assignedDriverId);
+        if (list) list.push(toOption(v));
+        else byDriver.set(v.assignedDriverId, [toOption(v)]);
+      } else {
+        pool.push(toOption(v));
+      }
+    }
+    const sortByLabel = (l: SearchableOption[]) => l.sort((a, b) => byName(a.label, b.label));
+    sortByLabel(pool);
+    byDriver.forEach(sortByLabel);
+    return { optionsByDriver: byDriver, poolOptions: pool };
+  }, [vehicles]);
+
   if (!user) return null;
 
   // Map a driver to their assigned vehicle (if any) for auto-fill convenience.
@@ -75,21 +123,24 @@ export default function BulkOrderPage() {
     setRows(prev => prev.map(r => (r.uid === uid ? { ...r, ...patch, status: 'idle', message: undefined } : r)));
   };
 
+  // Picking a driver pulls in their assigned vehicle. A driver with none of
+  // their own leaves a pool vehicle alone, but clears one that belongs to a
+  // different driver rather than leaving the row mismatched.
   const handleDriverChange = (uid: string, driverId: string) => {
-    // Auto-select the driver's assigned vehicle if the row has none yet.
     const assigned = vehicleForDriver(driverId);
     setRows(prev =>
-      prev.map(r =>
-        r.uid === uid
-          ? {
-              ...r,
-              driverId,
-              vehicleId: r.vehicleId || assigned?.id || '',
-              status: 'idle',
-              message: undefined,
-            }
-          : r,
-      ),
+      prev.map(r => {
+        if (r.uid !== uid) return r;
+        const current = vehicles.find(v => v.id === r.vehicleId);
+        const keepCurrent = current && !current.assignedDriverId;
+        return {
+          ...r,
+          driverId,
+          vehicleId: assigned?.id ?? (keepCurrent ? r.vehicleId : ''),
+          status: 'idle',
+          message: undefined,
+        };
+      }),
     );
   };
 
@@ -108,9 +159,9 @@ export default function BulkOrderPage() {
       toast.error('No drivers found. Add drivers first.');
       return;
     }
-    const generated = drivers.map(d =>
-      makeRow({ driverId: d.id, vehicleId: vehicleForDriver(d.id)?.id || '' }),
-    );
+    const generated = [...drivers]
+      .sort((a, b) => byName(a.name, b.name))
+      .map(d => makeRow({ driverId: d.id, vehicleId: vehicleForDriver(d.id)?.id || '' }));
     // Replace any empty starter rows; otherwise append.
     setRows(prev => {
       const nonEmpty = prev.filter(r => r.driverId || r.vehicleId || r.volume > 0);
@@ -366,9 +417,10 @@ export default function BulkOrderPage() {
           </thead>
           <tbody>
             {rows.map((row, idx) => {
-              const vehicleOptions = vehicles.filter(
-                v => !v.assignedDriverId || v.assignedDriverId === row.driverId,
-              );
+              const own = optionsByDriver.get(row.driverId);
+              const vehicleOptions = own
+                ? [...own, ...poolOptions].sort((a, b) => byName(a.label, b.label))
+                : poolOptions;
               // The selected vehicle's tank capacity is the fuel limit for this row.
               const selectedVehicle = vehicles.find(v => v.id === row.vehicleId);
               const capacity = selectedVehicle?.tankCapacity ?? 0;
@@ -377,30 +429,26 @@ export default function BulkOrderPage() {
                 <tr key={row.uid} className={row.status === 'error' ? 'bulk-row-error' : ''}>
                   <td className="text-muted">{idx + 1}</td>
                   <td>
-                    <select
+                    <SearchableSelect
+                      options={driverOptions}
                       value={row.driverId}
-                      onChange={e => handleDriverChange(row.uid, e.target.value)}
-                    >
-                      <option value="">— Select driver —</option>
-                      {drivers.map(d => (
-                        <option key={d.id} value={d.id}>
-                          {d.name} ({d.phone})
-                        </option>
-                      ))}
-                    </select>
+                      onChange={v => handleDriverChange(row.uid, v)}
+                      placeholder="— Select driver —"
+                      searchPlaceholder="Search by name or phone..."
+                      emptyText="No drivers match your search"
+                      portal
+                    />
                   </td>
                   <td>
-                    <select
+                    <SearchableSelect
+                      options={vehicleOptions}
                       value={row.vehicleId}
-                      onChange={e => updateRow(row.uid, { vehicleId: e.target.value })}
-                    >
-                      <option value="">— Select vehicle —</option>
-                      {vehicleOptions.map(v => (
-                        <option key={v.id} value={v.id}>
-                          {v.regNumber} - {v.type}
-                        </option>
-                      ))}
-                    </select>
+                      onChange={v => updateRow(row.uid, { vehicleId: v })}
+                      placeholder="— Select vehicle —"
+                      searchPlaceholder="Search by reg number or type..."
+                      emptyText="No vehicles match your search"
+                      portal
+                    />
                   </td>
                   <td>
                     <select

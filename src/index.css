@@ -1308,6 +1308,14 @@ body {
   overflow: hidden;
 }
 
+/* Portalled into document.body, so positioned against the viewport from the
+   trigger's measured rect instead of an offset parent. */
+.searchable-select-panel.is-portalled {
+  position: fixed;
+  right: auto;
+  z-index: 1200;
+}
+
 .searchable-select-search {
   display: flex;
   align-items: center;
