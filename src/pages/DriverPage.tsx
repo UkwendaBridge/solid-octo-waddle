@@ -68,10 +68,14 @@ export default function DriverPage() {
     setDeleteId(null);
   };
 
-  const filtered = myDrivers.filter(d => {
-    const q = search.toLowerCase();
-    return search === '' || d.name.toLowerCase().includes(q) || d.phone.includes(q) || (d.email || '').toLowerCase().includes(q);
-  });
+  const filtered = myDrivers
+    .filter(d => {
+      const q = search.toLowerCase();
+      return search === '' || d.name.toLowerCase().includes(q) || d.phone.includes(q) || (d.email || '').toLowerCase().includes(q);
+    })
+    // A to Z by name. localeCompare so accented names and mixed casing sort
+    // where a reader expects, rather than by raw character code.
+    .sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }));
 
   if (isLoading && drivers.length === 0) {
     return (
