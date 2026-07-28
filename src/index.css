@@ -4696,7 +4696,8 @@ body {
 }
 
 .bulk-table select,
-.bulk-table input {
+.bulk-table input,
+.bulk-table .searchable-select-trigger {
   width: 100%;
   min-width: 110px;
   padding: 7px 9px;
@@ -4707,8 +4708,15 @@ body {
   color: var(--text);
 }
 
+/* The driver and vehicle columns hold comboboxes, which need room for a
+   reg number or a full name without squeezing the numeric columns. */
+.bulk-table .searchable-select {
+  min-width: 170px;
+}
+
 .bulk-table select:focus,
-.bulk-table input:focus {
+.bulk-table input:focus,
+.bulk-table .searchable-select-trigger:focus {
   outline: none;
   border-color: var(--primary);
   box-shadow: 0 0 0 3px var(--primary-light);

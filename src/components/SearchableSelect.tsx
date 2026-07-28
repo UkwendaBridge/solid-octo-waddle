@@ -82,7 +82,16 @@ export default function SearchableSelect({
     const el = wrapperRef.current;
     if (!el) return;
     const r = el.getBoundingClientRect();
-    setPanelRect({ top: r.bottom + 4, left: r.left, width: r.width });
+    // Rows near the bottom of a long table have no room below, so flip above
+    // the trigger when that is the roomier side.
+    const panelH = panelRef.current?.offsetHeight ?? 300;
+    const spaceBelow = window.innerHeight - r.bottom;
+    const flipUp = spaceBelow < panelH + 8 && r.top > spaceBelow;
+    setPanelRect({
+      top: flipUp ? Math.max(8, r.top - panelH - 4) : r.bottom + 4,
+      left: r.left,
+      width: r.width,
+    });
   }, []);
 
   // A fixed-position panel does not travel with the trigger, so re-measure on
@@ -110,6 +119,9 @@ export default function SearchableSelect({
     setQuery('');
     // Panel opens unfiltered, so index against the full list
     setHighlighted(Math.max(0, options.findIndex(o => o.value === value)));
+    // Measure before the first paint so the panel never renders at zero width
+    // (which would mismeasure its own height for the flip check below).
+    if (portal) syncPanelPosition();
     setOpen(true);
   };
 
