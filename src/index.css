@@ -688,6 +688,17 @@ body {
   display: none;
 }
 
+/* Hide bare text labels inside nav links / dropdowns when collapsed */
+.sidebar.sidebar-collapsed .sidebar-link > span,
+.sidebar.sidebar-collapsed .sidebar-dropdown-toggle > span {
+  display: none;
+}
+
+/* Collapse hides expandable sub-menus to keep the rail icon-only */
+.sidebar.sidebar-collapsed .sidebar-dropdown-items {
+  display: none;
+}
+
 /* ── Main content area ── */
 .app-main {
   flex: 1;
@@ -1287,6 +1298,37 @@ body {
   transform: rotate(180deg);
 }
 
+/* Editable (typeahead) trigger: the field itself is a text box */
+.searchable-select-trigger-input {
+  cursor: text;
+  padding-right: 10px;
+}
+
+.searchable-select-trigger-input:focus-within {
+  border-color: var(--qb-green);
+  box-shadow: 0 0 0 3px var(--qb-green-subtle);
+}
+
+.searchable-select-typeahead {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  background: transparent;
+  outline: none;
+  color: var(--text);
+  font-size: 14px;
+  font-family: inherit;
+  padding: 0;
+}
+
+.searchable-select-typeahead::placeholder {
+  color: var(--text-muted);
+}
+
+.searchable-select-typeahead:disabled {
+  cursor: not-allowed;
+}
+
 .searchable-select-placeholder {
   color: var(--text-muted);
 }
@@ -1633,6 +1675,38 @@ body {
 }
 
 .data-table tbody tr:hover {
+  background: var(--bg-card-hover);
+}
+
+.data-table tbody tr.row-clickable {
+  cursor: pointer;
+}
+
+/* Explorer grid: keep wide values (site IDs, UUIDs) from stretching columns.
+   Full value stays available via the cell title tooltip. */
+.explorer-table td,
+.explorer-table th {
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Pin the actions column to the right so it's reachable without scrolling. */
+.explorer-table .col-actions {
+  position: sticky;
+  right: 0;
+  max-width: none;
+  overflow: visible;
+  background: var(--bg-card);
+  box-shadow: -6px 0 8px -6px rgba(0, 0, 0, 0.12);
+}
+
+.explorer-table thead .col-actions {
+  background: var(--bg-card-hover);
+  z-index: 2;
+}
+
+.explorer-table tbody tr:hover .col-actions {
   background: var(--bg-card-hover);
 }
 
@@ -2138,6 +2212,26 @@ body {
 
 .order-card:hover {
   box-shadow: var(--shadow);
+}
+
+.order-card-clickable {
+  cursor: pointer;
+}
+
+.order-card-clickable:hover {
+  border-color: var(--qb-green);
+}
+
+/* Stacked action buttons inside the order actions modal */
+.modal-actions-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.modal-actions-grid .btn {
+  width: 100%;
+  justify-content: center;
 }
 
 .order-card-header {

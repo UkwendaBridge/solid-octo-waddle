@@ -48,6 +48,7 @@ const AddDebtorPage = lazy(() => import('./pages/AddDebtorPage'));
 const CustomerSettingsPage = lazy(() => import('./pages/CustomerSettingsPage'));
 const CustomerBalancePage = lazy(() => import('./pages/CustomerBalancePage'));
 const OmcAccountingPage = lazy(() => import('./pages/OmcAccountingPage'));
+const DataExplorerPage = lazy(() => import('./pages/DataExplorerPage'));
 
 export default function App() {
   return (
@@ -91,6 +92,7 @@ export default function App() {
                         <Route path="set-fuel-prices" element={<SetFuelPricesPage />} />
                         <Route path="price-scheduler" element={<PriceSchedulerPage />} />
                         <Route path="accounting" element={<OmcAccountingPage />} />
+                        <Route path="data" element={<DataExplorerPage />} />
                         <Route path="settings" element={<OmcSettingsPage />} />
                       </Route>
 

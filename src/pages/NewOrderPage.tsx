@@ -21,6 +21,9 @@ import {
 
 const FUEL_TYPES: FuelType[] = ['Petrol', 'Diesel'];
 
+// A-Z the way a reader expects: case- and accent-insensitive.
+const byName = (a: string, b: string) => a.localeCompare(b, undefined, { sensitivity: 'base' });
+
 export default function NewOrderPage() {
   const { user } = useAuth();
   const { placeOrder, sites } = useOrders();
@@ -44,24 +47,28 @@ export default function NewOrderPage() {
   // Show each driver's vehicle in the list, so the auto-fill is no surprise.
   const driverOptions = useMemo(
     () =>
-      drivers.map(d => {
-        const assigned = vehicles.find(v => v.assignedDriverId === d.id);
-        return {
-          value: d.id,
-          label: d.name,
-          sublabel: assigned ? `${d.phone} · ${assigned.regNumber}` : d.phone,
-        };
-      }),
+      [...drivers]
+        .sort((a, b) => byName(a.name, b.name))
+        .map(d => {
+          const assigned = vehicles.find(v => v.assignedDriverId === d.id);
+          return {
+            value: d.id,
+            label: d.name,
+            sublabel: assigned ? `${d.phone} · ${assigned.regNumber}` : d.phone,
+          };
+        }),
     [drivers, vehicles]
   );
 
   const vehicleOptions = useMemo(
     () =>
-      vehicles.map(v => ({
-        value: v.id,
-        label: v.regNumber,
-        sublabel: `${v.type} · ${v.tankCapacity}L`,
-      })),
+      [...vehicles]
+        .sort((a, b) => byName(a.regNumber, b.regNumber))
+        .map(v => ({
+          value: v.id,
+          label: v.regNumber,
+          sublabel: `${v.type} · ${v.tankCapacity}L`,
+        })),
     [vehicles]
   );
 
@@ -210,6 +217,7 @@ export default function NewOrderPage() {
               searchPlaceholder="Search by name or phone..."
               emptyText="No drivers match your search"
               hasError={!!errors.driverId}
+              editable
             />
             {errors.driverId && <span className="field-error">{errors.driverId}</span>}
           </div>
@@ -229,6 +237,7 @@ export default function NewOrderPage() {
               searchPlaceholder="Search by reg number or type..."
               emptyText="No vehicles match your search"
               hasError={!!errors.vehicleId}
+              editable
             />
             {errors.vehicleId && <span className="field-error">{errors.vehicleId}</span>}
             {!errors.vehicleId && autoFilledVehicle && (

@@ -299,6 +299,28 @@ export const omcOrders = {
       body: JSON.stringify({ reason }),
     });
   },
+
+  update: async (
+    orderId: string,
+    data: Partial<{ requested_fuel: number; fuel_grade: string; destination: string }>,
+  ) => {
+    return apiRequest<MessageResponse>(`/omc/orders/${orderId}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  },
+
+  regenerateOtp: async (orderId: string) => {
+    return apiRequest<OtpRequestResponse>(`/omc/orders/${orderId}/regenerate-otp`, {
+      method: 'POST',
+    });
+  },
+
+  delete: async (orderId: string) => {
+    return apiRequest<MessageResponse>(`/omc/orders/${orderId}`, {
+      method: 'DELETE',
+    });
+  },
 };
 
 // =============================================

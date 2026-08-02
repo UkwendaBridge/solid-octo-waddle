@@ -29,6 +29,9 @@ import {
   BarChart3,
   Calculator,
   Layers,
+  Database,
+  PanelLeftClose,
+  PanelLeftOpen,
 } from 'lucide-react';
 
 export default function Layout() {
@@ -36,7 +39,17 @@ export default function Layout() {
   const navigate = useNavigate();
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [collapsed, setCollapsed] = useState(() => localStorage.getItem('sidebar_collapsed') === '1');
   const [reportsOpen, setReportsOpen] = useState(location.pathname.startsWith('/dashboard/reports'));
+
+  // Persist the desktop collapse preference across sessions.
+  const toggleCollapsed = () => {
+    setCollapsed(prev => {
+      const next = !prev;
+      localStorage.setItem('sidebar_collapsed', next ? '1' : '0');
+      return next;
+    });
+  };
 
   // Close sidebar on route change (mobile)
   useEffect(() => {
@@ -113,7 +126,7 @@ export default function Layout() {
       {/* ── Body: Sidebar + Content ── */}
       <div className="app-body">
         {/* ── Sidebar ── */}
-        <aside className={`sidebar ${sidebarOpen ? 'sidebar-open' : ''}`}>
+        <aside className={`sidebar ${sidebarOpen ? 'sidebar-open' : ''} ${collapsed ? 'sidebar-collapsed' : ''}`}>
           <div className="sidebar-top">
             <nav className="sidebar-nav">
               <span className="sidebar-section-label">Menu</span>
@@ -158,6 +171,11 @@ export default function Layout() {
                   <NavLink to="/omc/accounting" className="sidebar-link">
                     <Calculator size={18} />
                     <span>Accounting</span>
+                    <ChevronRight size={14} className="sidebar-link-arrow" />
+                  </NavLink>
+                  <NavLink to="/omc/data" className="sidebar-link">
+                    <Database size={18} />
+                    <span>Database Explorer</span>
                     <ChevronRight size={14} className="sidebar-link-arrow" />
                   </NavLink>
 
@@ -325,22 +343,33 @@ export default function Layout() {
 
           {/* Bottom / User */}
           <div className="sidebar-bottom">
+            <button
+              type="button"
+              className="sidebar-collapse-btn"
+              onClick={toggleCollapsed}
+              aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+              title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            >
+              {collapsed ? <PanelLeftOpen size={18} /> : <PanelLeftClose size={18} />}
+              <span className="sidebar-label">Collapse</span>
+            </button>
+            <div className="sidebar-bottom-divider" />
             {isOmc && (
               <div className="sidebar-role-badge">
                 <Building2 size={14} />
-                Oil Marketing Company
+                <span className="sidebar-label">Oil Marketing Company</span>
               </div>
             )}
             {isDriver && (
               <div className="sidebar-role-badge">
                 <Truck size={14} />
-                Driver
+                <span className="sidebar-label">Driver</span>
               </div>
             )}
             {isCustomer && (
               <div className="sidebar-role-badge">
                 <User size={14} />
-                Customer
+                <span className="sidebar-label">Customer</span>
               </div>
             )}
             <div className="sidebar-user">
@@ -354,7 +383,7 @@ export default function Layout() {
             </div>
             <button className="sidebar-logout" onClick={handleLogout}>
               <LogOut size={16} />
-              Sign Out
+              <span className="sidebar-label">Sign Out</span>
             </button>
           </div>
         </aside>

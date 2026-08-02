@@ -18,6 +18,7 @@ interface Props {
   order: FuelOrder;
   showOtp?: boolean;
   actions?: React.ReactNode;
+  onClick?: () => void;
 }
 
 const STATUS_CONFIG: Record<string, { label: string; className: string; icon: React.ReactNode }> = {
@@ -30,11 +31,17 @@ const STATUS_CONFIG: Record<string, { label: string; className: string; icon: Re
   completed:  { label: 'Completed',        className: 'status-completed', icon: <CheckCircle2 size={14} /> },
 };
 
-export default function OrderCard({ order, showOtp = false, actions }: Props) {
+export default function OrderCard({ order, showOtp = false, actions, onClick }: Props) {
   const statusCfg = STATUS_CONFIG[order.status] ?? STATUS_CONFIG.pending;
 
   return (
-    <div className="order-card">
+    <div
+      className={`order-card${onClick ? ' order-card-clickable' : ''}`}
+      onClick={onClick}
+      role={onClick ? 'button' : undefined}
+      tabIndex={onClick ? 0 : undefined}
+      onKeyDown={onClick ? e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick(); } } : undefined}
+    >
       <div className="order-card-header">
         <div>
           <span className="order-id">{order.id}</span>
@@ -156,7 +163,11 @@ export default function OrderCard({ order, showOtp = false, actions }: Props) {
         )}
       </div>
 
-      {actions && <div className="order-card-actions">{actions}</div>}
+      {actions && (
+        <div className="order-card-actions" onClick={e => e.stopPropagation()}>
+          {actions}
+        </div>
+      )}
     </div>
   );
 }

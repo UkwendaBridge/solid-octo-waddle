@@ -25,6 +25,11 @@ interface SearchableSelectProps {
    * panel).
    */
   portal?: boolean;
+  /**
+   * Turn the trigger itself into a text box: click and type straight away to
+   * filter, instead of opening a dropdown with a separate search field.
+   */
+  editable?: boolean;
 }
 
 export default function SearchableSelect({
@@ -38,6 +43,7 @@ export default function SearchableSelect({
   hasError = false,
   disabled = false,
   portal = false,
+  editable = false,
 }: SearchableSelectProps) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
@@ -46,6 +52,7 @@ export default function SearchableSelect({
   const wrapperRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   const searchRef = useRef<HTMLInputElement>(null);
+  const triggerInputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
 
   const selected = options.find(o => o.value === value);
@@ -73,10 +80,11 @@ export default function SearchableSelect({
     return () => document.removeEventListener('mousedown', onPointerDown);
   }, [open]);
 
-  // Focus the search box as soon as the panel opens
+  // Focus the search box as soon as the panel opens. In editable mode the
+  // trigger is itself the text box, so there is nothing extra to focus.
   useEffect(() => {
-    if (open) searchRef.current?.focus();
-  }, [open]);
+    if (open && !editable) searchRef.current?.focus();
+  }, [open, editable]);
 
   const syncPanelPosition = useCallback(() => {
     const el = wrapperRef.current;
@@ -133,7 +141,10 @@ export default function SearchableSelect({
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (!open) {
-      if (e.key === 'Enter' || e.key === ' ' || e.key === 'ArrowDown') {
+      // In editable mode the trigger is a text box, so Space must type a space
+      // rather than open the panel (focus already opens it anyway).
+      const openKeys = editable ? ['ArrowDown'] : ['Enter', ' ', 'ArrowDown'];
+      if (openKeys.includes(e.key)) {
         e.preventDefault();
         openPanel();
       }
@@ -162,20 +173,22 @@ export default function SearchableSelect({
       ref={panelRef}
       style={portal ? { top: panelRect.top, left: panelRect.left, width: panelRect.width } : undefined}
     >
-      <div className="searchable-select-search">
-        <Search size={16} />
-        <input
-          ref={searchRef}
-          type="text"
-          value={query}
-          placeholder={searchPlaceholder}
-          onChange={e => {
-            setQuery(e.target.value);
-            setHighlighted(0);
-          }}
-          onKeyDown={handleKeyDown}
-        />
-      </div>
+      {!editable && (
+        <div className="searchable-select-search">
+          <Search size={16} />
+          <input
+            ref={searchRef}
+            type="text"
+            value={query}
+            placeholder={searchPlaceholder}
+            onChange={e => {
+              setQuery(e.target.value);
+              setHighlighted(0);
+            }}
+            onKeyDown={handleKeyDown}
+          />
+        </div>
+      )}
 
       <div className="searchable-select-list" role="listbox" ref={listRef}>
         {filtered.length === 0 ? (
@@ -207,24 +220,50 @@ export default function SearchableSelect({
 
   return (
     <div className="searchable-select" ref={wrapperRef}>
-      <button
-        id={id}
-        type="button"
-        className={`searchable-select-trigger ${hasError ? 'input-error' : ''}`}
-        onClick={() => (open ? setOpen(false) : openPanel())}
-        onKeyDown={handleKeyDown}
-        disabled={disabled}
-        aria-haspopup="listbox"
-        aria-expanded={open}
-      >
-        <span className={selected ? '' : 'searchable-select-placeholder'}>
-          {selected ? selected.label : placeholder}
-          {selected?.sublabel && (
-            <span className="searchable-select-sub"> — {selected.sublabel}</span>
-          )}
-        </span>
-        <ChevronDown size={16} className={open ? 'chevron-open' : ''} />
-      </button>
+      {editable ? (
+        <div className={`searchable-select-trigger searchable-select-trigger-input ${hasError ? 'input-error' : ''}`}>
+          <input
+            id={id}
+            ref={triggerInputRef}
+            type="text"
+            className="searchable-select-typeahead"
+            value={open ? query : selected?.label ?? ''}
+            placeholder={placeholder}
+            disabled={disabled}
+            role="combobox"
+            aria-expanded={open}
+            aria-autocomplete="list"
+            onFocus={() => openPanel()}
+            onClick={() => { if (!open) openPanel(); }}
+            onChange={e => {
+              if (!open) setOpen(true);
+              setQuery(e.target.value);
+              setHighlighted(0);
+            }}
+            onKeyDown={handleKeyDown}
+          />
+          <ChevronDown size={16} className={open ? 'chevron-open' : ''} />
+        </div>
+      ) : (
+        <button
+          id={id}
+          type="button"
+          className={`searchable-select-trigger ${hasError ? 'input-error' : ''}`}
+          onClick={() => (open ? setOpen(false) : openPanel())}
+          onKeyDown={handleKeyDown}
+          disabled={disabled}
+          aria-haspopup="listbox"
+          aria-expanded={open}
+        >
+          <span className={selected ? '' : 'searchable-select-placeholder'}>
+            {selected ? selected.label : placeholder}
+            {selected?.sublabel && (
+              <span className="searchable-select-sub"> — {selected.sublabel}</span>
+            )}
+          </span>
+          <ChevronDown size={16} className={open ? 'chevron-open' : ''} />
+        </button>
+      )}
 
       {open && (portal ? createPortal(panel, document.body) : panel)}
     </div>
